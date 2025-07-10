@@ -9,6 +9,10 @@ const PORT = 5000;
 app.use(cors());
 app.use(express.json());
 
+app.get('/', (req, res) => {
+  res.send(`Server is running on ${PORT}`);
+});
+
 app.post('/generate-summary', async (req, res) => {
   const { jobTitle } = req.body;
 
