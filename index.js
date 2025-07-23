@@ -7,7 +7,7 @@ const app = express();
 const PORT = 5000;
 
 app.use(cors({
-  origin: 'https://resume-builder-frontend-wagi.vercel.app/',
+  origin: 'https://resume-builder-frontend-wagi.vercel.app',
   methods: ['GET', 'POST', 'OPTIONS'],
   credentials: true
 }));
