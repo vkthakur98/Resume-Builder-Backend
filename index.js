@@ -25,7 +25,11 @@ app.post('/generate-summary', async (req, res) => {
     return res.status(400).json({ error: 'Missing jobTitle' });
   }
 
-  const prompt = `Write a concise and engaging professional summary for a resume in 80 words. The candidate is applying for the position of ${jobTitle} and has ${experience} years of experience at ${company}. Be sure to include the company name, ${company}, and highlight the candidate’s strengths, professionalism, and motivation for this role.`;
+  const prompt = `Write a concise and engaging professional summary for a resume in 80 words. 
+The candidate is applying for the position of ${jobTitle} and has ${experience} years of experience at ${company}. 
+Be sure to include the company name, ${company}, and highlight the candidate’s strengths, professionalism, and motivation for this role. 
+Output only the professional summary text. Do not include introductions, explanations, or extra words.
+`;
   try {
     const response = await axios.post(
       'https://api.cohere.ai/generate',
