@@ -7,7 +7,7 @@ const app = express();
 const PORT = 5000;
 
 app.use(cors({
-  origin: 'https://resume-builder-frontend-wagi.vercel.app',
+  origin: 'https://resume-builder-frontend-wagi.vercel.app,',
   methods: ['GET', 'POST', 'OPTIONS'],
   credentials: true
 }));
@@ -19,14 +19,18 @@ app.get('/', (req, res) => {
 });
 
 app.post('/generate-summary', async (req, res) => {
-  const { jobTitle,company, experience } = req.body;
+  const { jobTitle,company,exp_duration,fresher } = req.body;
 
   if (!jobTitle) {
     return res.status(400).json({ error: 'Missing jobTitle' });
   }
 
-  const prompt = `Write a concise and engaging professional summary for a resume in 80 words. 
-The candidate is applying for the position of ${jobTitle} and has ${experience} years of experience at ${company}. 
+  const prompt = fresher?`Write a concise and engaging professional summary for a resume in 80 words.  
+The candidate has completed the following project(s): ${company}.  
+Be sure to highlight the candidate’s skills, technical expertise, problem-solving ability, and motivation for this role. Mention relevant technologies or tools used and key accomplishments in the project(s).  
+Output only the professional summary text. Do not include introductions, explanations, or extra words.
+`:`Write a concise and engaging professional summary for a resume in 80 words. 
+The candidate is applying for the position of ${jobTitle} and has ${exp_duration} years of experience at ${company}. 
 Be sure to include the company name, ${company}, and highlight the candidate’s strengths, professionalism, and motivation for this role. 
 Output only the professional summary text. Do not include introductions, explanations, or extra words.
 `;
