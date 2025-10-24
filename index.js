@@ -1,70 +1,46 @@
-const express = require('express');
-const axios = require('axios');
-const cors = require('cors');
-require('dotenv').config();
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
+import { GoogleGenAI } from "@google/genai";
+
+dotenv.config();
 
 const app = express();
-const PORT = 5000;
-
-app.use(cors({
-  origin: 'https://resume-builder-frontend-wagi.vercel.app',
-  methods: ['GET', 'POST', 'OPTIONS'],
-  credentials: true
-}));
-
+app.use(cors());
 app.use(express.json());
 
-app.get('/', (req, res) => {
-  res.send(`Server is running on ${PORT}`);
+const genAI = new GoogleGenAI({
+  apiKey: process.env.GEMINI_API_KEY,
 });
 
-app.post('/generate-summary', async (req, res) => {
-  const { jobTitle,company,exp_duration,fresher } = req.body;
-
-  if (!jobTitle) {
-    return res.status(400).json({ error: 'Missing jobTitle' });
-  }
-
-  const prompt = fresher?`Write a concise and engaging professional summary for a resume in 80 words.  
-The candidate has completed the following project(s): ${company}.  
-Be sure to highlight the candidate’s skills, technical expertise, problem-solving ability, and motivation for this role. Mention relevant technologies or tools used and key accomplishments in the project(s).  
-Output only the professional summary text. Do not include introductions, explanations, or extra words.
-`:`Write a concise and engaging professional summary for a resume in 80 words. 
-The candidate is applying for the position of ${jobTitle} and has ${exp_duration} years of experience at ${company}. 
-Be sure to include the company name, ${company}, and highlight the candidate’s strengths, professionalism, and motivation for this role. 
-Output only the professional summary text. Do not include introductions, explanations, or extra words.
-`;
+// ✅ POST route for generating a professional summary
+app.post("/generate-summary", async (req, res) => {
   try {
-    const response = await axios.post(
-      'https://api.cohere.ai/generate',
-      {
-        model: "command",
-        prompt,
-        max_tokens: 150,
-        temperature: 0.7,
-        k: 0,
-        stop_sequences: [],
-        return_likelihoods: "NONE",
-      },
-      {
-        headers: {
-          "Authorization": `Bearer ${process.env.COHERE_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-      }
-    ); 
+    const { jobRole } = req.body;
 
-     console.log("Cohere API Response:", response.data.text);
-    const summary = response.data.text;
-    res.json({ summary: summary });
+    if (!jobRole) {
+      return res.status(400).json({ error: "Job role is required." });
+    }
+
+    const prompt = `
+    Write a professional resume summary for a ${jobRole}.
+    Keep it concise (around 4-5 lines), use a confident and polished tone.
+    Mention key skills, strengths, and overall professional impact.
+    `;
+
+    const response = await genAI.models.generateContent({
+      model: "gemini-2.5-flash",
+      contents: prompt,
+    });
+
+    const summary = response.text();
+    res.json({ summary });
   } catch (error) {
-    console.error("Cohere API error:", error.message);
-    res.status(500).json({ error: "Failed to generate summary" });
+    console.error("Error generating summary:", error);
+    res.status(500).json({ error: "Failed to generate summary." });
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`🚀 Server running at http://localhost:${PORT}`);
-});
-
-//Server started
+// ✅ Run server
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
