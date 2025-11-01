@@ -16,25 +16,28 @@ const genAI = new GoogleGenAI({
 // ✅ POST route for generating a professional summary
 app.post("/generate-summary", async (req, res) => {
   try {
-    const { jobRole } = req.body;
-
-    if (!jobRole) {
+    // const { jobTitle } = req.body;
+    const jobTitle = req.body.jobTitle;
+    const exp_duration = req.body.exp;
+    const company = req.body.company;
+    if (!jobTitle) {
       return res.status(400).json({ error: "Job role is required." });
     }
 
     const prompt = `
-    Write a professional resume summary for a ${jobRole}.
-    Keep it concise (around 4-5 lines), use a confident and polished tone.
-    Mention key skills, strengths, and overall professional impact.
-    `;
+    Write a professional resume summary for a ${jobTitle}. candidate has the ${exp_duration} year of experience as a ${jobTitle} in the ${company}. 
+    Keep it concise (around 4-5 lines), use a confident and polished tone. Must include the expierience and company.
+    don't give me outputs like "as an AI language model".`;
 
     const response = await genAI.models.generateContent({
       model: "gemini-2.5-flash",
       contents: prompt,
     });
 
-    const summary = response.text();
+    
+    const summary = response.candidates[0].content.parts[0].text;
     res.json({ summary });
+
   } catch (error) {
     console.error("Error generating summary:", error);
     res.status(500).json({ error: "Failed to generate summary." });
